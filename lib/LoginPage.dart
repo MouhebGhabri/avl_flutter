@@ -1,9 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:avl_flutter/SignupPage.dart';
+import 'package:avl_flutter/httpRequests.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final HttpRequests httpRequest = HttpRequests();
+
+  void _login() async {
+    String username = _usernameController.text;
+    String password = _passwordController.text;
+
+    var response = await httpRequest.login(username, password);
+    if (response != null) {
+      print('Login successful: $response'); // Handle successful login
+      // Navigate to the next screen or do something else here
+    } else {
+      print('Login failed');
+       // Handle failed login
+      // Show an error message to the user
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +43,6 @@ class LoginPage extends StatelessWidget {
               colors: [Colors.black87, Colors.deepPurpleAccent],
             ),
           ),
-
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -38,7 +62,6 @@ class LoginPage extends StatelessWidget {
   Widget _aiHeader(BuildContext context) {
     return const Column(
       children: [
-
         Text(
           "AVL",
           style: TextStyle(
@@ -60,6 +83,7 @@ class LoginPage extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         TextField(
+          controller: _usernameController,
           style: const TextStyle(color: Colors.white),
           decoration: InputDecoration(
             hintText: "Username",
@@ -75,6 +99,7 @@ class LoginPage extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         TextField(
+          controller: _passwordController,
           obscureText: true,
           style: const TextStyle(color: Colors.white),
           decoration: InputDecoration(
@@ -91,7 +116,7 @@ class LoginPage extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         ElevatedButton(
-          onPressed: () {},
+          onPressed: _login,
           style: ElevatedButton.styleFrom(
             shape: const StadiumBorder(),
             padding: const EdgeInsets.symmetric(vertical: 16),
@@ -108,7 +133,9 @@ class LoginPage extends StatelessWidget {
 
   Widget _forgotPassword(BuildContext context) {
     return TextButton(
-      onPressed: () {},
+      onPressed: () {
+        // Add functionality for forgot password
+      },
       child: const Text(
         "Forgot password?",
         style: TextStyle(color: Colors.white),

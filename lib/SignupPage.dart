@@ -1,8 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:avl_flutter/LoginPage.dart';
+import 'package:avl_flutter/httpRequests.dart'; // Import the HttpRequests class
 
-class SignupPage extends StatelessWidget {
+class SignupPage extends StatefulWidget {
   const SignupPage({super.key});
+
+  @override
+  _SignupPageState createState() => _SignupPageState();
+}
+
+class _SignupPageState extends State<SignupPage> {
+  final HttpRequests httpRequest = HttpRequests(); // Create an instance of HttpRequests
+  final TextEditingController usernameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController firstnameController = TextEditingController(); // Controller for First Name
+  final TextEditingController lastnameController = TextEditingController(); // Controller for Last Name
+  String? apiResponse; // To store the API response
+  String? errorMessage; // To store any error message
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +68,7 @@ class SignupPage extends StatelessWidget {
                 const SizedBox(height: 20),
                 _signupButton(context),
                 const Center(child: Text("Or", style: TextStyle(color: Colors.white))),
-                _googleSignInButton(context),
+                // _googleSignInButton(context),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -72,6 +87,10 @@ class SignupPage extends StatelessWidget {
                     )
                   ],
                 ),
+                if (apiResponse != null) 
+                  Text('Response: $apiResponse', style: TextStyle(color: Colors.green)),
+                if (errorMessage != null) 
+                  Text('Error: $errorMessage', style: TextStyle(color: Colors.red)),
               ],
             ),
           ),
@@ -84,6 +103,39 @@ class SignupPage extends StatelessWidget {
     return Column(
       children: [
         TextField(
+          controller: firstnameController,
+          style: const TextStyle(color: Colors.white),
+          decoration: InputDecoration(
+            hintText: "First Name",
+            filled: true,
+            fillColor: Colors.deepPurple.withOpacity(0.1),
+            hintStyle: const TextStyle(color: Colors.white70),
+            prefixIcon: const Icon(Icons.person, color: Colors.white),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(18),
+              borderSide: BorderSide.none,
+            ),
+          ),
+        ),
+        const SizedBox(height: 20),
+        TextField(
+          controller: lastnameController,
+          style: const TextStyle(color: Colors.white),
+          decoration: InputDecoration(
+            hintText: "Last Name",
+            filled: true,
+            fillColor: Colors.deepPurple.withOpacity(0.1),
+            hintStyle: const TextStyle(color: Colors.white70),
+            prefixIcon: const Icon(Icons.person, color: Colors.white),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(18),
+              borderSide: BorderSide.none,
+            ),
+          ),
+        ),
+        const SizedBox(height: 20),
+        TextField(
+          controller: usernameController,
           style: const TextStyle(color: Colors.white),
           decoration: InputDecoration(
             hintText: "Username",
@@ -99,6 +151,7 @@ class SignupPage extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         TextField(
+          controller: emailController,
           style: const TextStyle(color: Colors.white),
           decoration: InputDecoration(
             hintText: "Email",
@@ -114,6 +167,7 @@ class SignupPage extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         TextField(
+          controller: passwordController,
           obscureText: true,
           style: const TextStyle(color: Colors.white),
           decoration: InputDecoration(
@@ -134,7 +188,9 @@ class SignupPage extends StatelessWidget {
 
   Widget _signupButton(BuildContext context) {
     return ElevatedButton(
-      onPressed: () {},
+      onPressed: () {
+        createUser(); // Call the createUser function on button press
+      },
       style: ElevatedButton.styleFrom(
         shape: const StadiumBorder(),
         padding: const EdgeInsets.symmetric(vertical: 16),
@@ -147,32 +203,53 @@ class SignupPage extends StatelessWidget {
     );
   }
 
-  Widget _googleSignInButton(BuildContext context) {
-    return Container(
-      child: TextButton(
-        onPressed: () {},
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              height: 30.0,
-              width: 30.0,
-              decoration: const BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage('assets/images/google.png'),
-                  fit: BoxFit.cover,
-                ),
-                shape: BoxShape.circle,
-              ),
-            ),
-            const SizedBox(width: 18),
-            const Text(
-              "Sign In with Google",
-              style: TextStyle(color: Colors.white),
-            ),
-          ],
-        ),
-      ),
-    );
+  void createUser() async {
+    String username = usernameController.text;
+    String email = emailController.text;
+    String password = passwordController.text;
+    String firstname = firstnameController.text; // Get first name from the controller
+    String lastname = lastnameController.text; // Get last name from the controller
+
+    var response = await httpRequest.createUser(username, password, email, firstname, lastname);
+    if (response != null) {
+      setState(() {
+        apiResponse = response; // Store the API response and update the UI
+        errorMessage = null; // Clear any previous error message
+      });
+    } else {
+      setState(() {
+        errorMessage = 'Failed to create user'; // Update error message if the request fails
+        apiResponse = null; // Clear previous response
+      });
+    }
   }
+
+  // Widget _googleSignInButton(BuildContext context) {
+  //   return Container(
+  //     child: TextButton(
+  //       onPressed: () {},
+  //       child: Row(
+  //         mainAxisAlignment: MainAxisAlignment.center,
+  //         children: [
+  //           Container(
+  //             height: 30.0,
+  //             width: 30.0,
+  //             decoration: const BoxDecoration(
+  //               image: DecorationImage(
+  //                 image: AssetImage('assets/images/google.png'),
+  //                 fit: BoxFit.cover,
+  //               ),
+  //               shape: BoxShape.circle,
+  //             ),
+  //           ),
+  //           const SizedBox(width: 18),
+  //           const Text(
+  //             "Sign In with Google",
+  //             style: TextStyle(color: Colors.white),
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 }
