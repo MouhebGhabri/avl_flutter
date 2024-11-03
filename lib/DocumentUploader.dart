@@ -11,14 +11,14 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Document Uploader',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: DocumentUploaderPage(), // Mettez à jour ici
+      home: DocumentUploaderPage(), 
     );
   }
 }
 
-class DocumentUploaderPage extends StatefulWidget { // Mettez à jour ici
+class DocumentUploaderPage extends StatefulWidget { 
   @override
-  _DocumentUploaderPageState createState() => _DocumentUploaderPageState(); // Mettez à jour ici
+  _DocumentUploaderPageState createState() => _DocumentUploaderPageState();
 }
 
 class _DocumentUploaderPageState extends State<DocumentUploaderPage> {
@@ -32,7 +32,7 @@ class _DocumentUploaderPageState extends State<DocumentUploaderPage> {
 
     if (result != null && result.files.isNotEmpty) {
       setState(() {
-        _filePath = result.files.single.name; // Only show the file name
+        _filePath = result.files.single.name; 
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
