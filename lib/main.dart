@@ -13,12 +13,13 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
         debugShowCheckedModeBanner: false,
-        initialRoute: '/profile', // Set the initial route
+        initialRoute: '/HomeScreen', // Set the initial route
         routes: {
           '/': (context) => LoginPage(), // Change this to your initial screen
           '/profile': (context) => ProfilePage(),
           '/login': (context) => LoginPage(),
           '/signup': (context) => SignupPage(),
+          '/HomeScreen': (context) => HomeScreen(),
         });
   }
 }

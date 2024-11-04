@@ -1,59 +1,75 @@
-import 'package:avl_flutter/httpRequests.dart';
+import 'dart:io';
+import 'package:avl_flutter/API/pdf_api.dart';
+import 'package:avl_flutter/PdfViewPage.dart';
+import 'package:avl_flutter/httpRequests.dart'; // Adjust the import based on your actual file structure
+import 'package:avl_flutter/widget/button_widget.dart';
 import 'package:flutter/material.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
-
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  HttpRequests httpRequest = HttpRequests(); // Create an instance of HttpRequests
-  String? apiData; // Variable to store the fetched API data
-  String? errorMessage; // Variable to store any error message
-
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   fetchApiData(); // Fetch the API data when the screen initializes
-  // }
-
-  // // Function to fetch API data
-  // void fetchApiData() async {
-  //   var data = await httpRequest.fetchData(); // Fetch raw string data
-  //   if (data != null) {
-  //     setState(() {
-  //       apiData = data; // Store the plain text response and update the UI
-  //     });
-  //   } else {
-  //     setState(() {
-  //       errorMessage = 'Failed to fetch data';
-  //     });
-  //   }
-  // }
-
+class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Home Screen'),
+        automaticallyImplyLeading: false, // Disable the back button
       ),
-      // body: apiData == null
-      //     ? errorMessage != null
-      //         ? Center(
-      //             child: Text(
-      //               'Error: $errorMessage',
-      //               style: TextStyle(fontSize: 16, color: Colors.red),
-      //             ),
-      //           )
-      //         : Center(child: CircularProgressIndicator()) // Show a loading spinner while fetching data
-      //     : Center(
-      //         child: Text(
-      //           'API Response: $apiData', // Display the plain text response
-      //           style: TextStyle(fontSize: 16),
-      //         ),
-      //       ),
+      endDrawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: const Color.fromARGB(255, 159, 83, 221),
+              ),
+              child: Text(
+                'Menu',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                ),
+              ),
+            ),
+            ListTile(
+              leading: Icon(Icons.person),
+              title: Text('Modify Profile'),
+              onTap: () {
+                Navigator.pushNamed(context, '/profile');
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.logout),
+              title: Text('Log Out'),
+              onTap: () {
+                Navigator.pushNamed(context, '/login');
+              },
+            ),
+          ],
+        ),
+      ),
+      body: Center(
+        child: Padding(
+          padding: EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ButtonWidget(
+                text: "Pick PDF",
+                onClicked: () async {
+                  final file = await PDFApi.pickFile();
+                  if (file == null) return;
+                  openPDF(context, file);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void openPDF(BuildContext context, File file) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => PDFViewerPage(file: file)),
     );
   }
 }

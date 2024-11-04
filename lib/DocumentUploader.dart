@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 
-void main() {
-  runApp(MyApp());
-}
-
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -36,7 +32,8 @@ class _DocumentUploaderPageState extends State<DocumentUploaderPage> {
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('No file selected or invalid file type.')),
+        SnackBar(content: Text('No file selected or invalid file type.')
+        ),
       );
     }
   }

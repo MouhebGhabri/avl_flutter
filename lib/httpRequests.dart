@@ -100,6 +100,8 @@ class HttpRequests {
   }
 }
 
+
+
 //   Future<Map<String, dynamic>?> login(String username, String password) async {
 //     final String apiUrl =
 //         GlobalAPIUri + "auth/login"; // Replace with your actual API URL
