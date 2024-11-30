@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 
@@ -27,6 +29,7 @@ class _DocumentUploaderPageState extends State<DocumentUploaderPage> {
     );
 
     if (result != null && result.files.isNotEmpty) {
+      log("file uploaded succffuly");
       setState(() {
         _filePath = result.files.single.name; 
       });

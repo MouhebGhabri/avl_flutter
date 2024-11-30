@@ -1,5 +1,11 @@
+import 'dart:io';
+import 'package:avl_flutter/API/pdf_api.dart';
+import 'package:avl_flutter/PdfViewPage.dart';
+import 'package:avl_flutter/httpRequests.dart'; // Adjust the import based on your actual file structure
+import 'package:avl_flutter/widget/button_widget.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-
+import 'package:avl_flutter/API/Django.dart';
 
 
 class BooksList extends StatelessWidget {
@@ -62,6 +68,8 @@ class BooksList extends StatelessWidget {
 }
 
 // Custom Popup Dialog Widget
+
+
 class FileDialog extends StatefulWidget {
   @override
   _FileDialogState createState() => _FileDialogState();
@@ -69,29 +77,36 @@ class FileDialog extends StatefulWidget {
 
 class _FileDialogState extends State<FileDialog> {
   final TextEditingController _fileNameController = TextEditingController();
+  File? _selectedFile;
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Import File'),
+      title: const Text('Import File'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           ElevatedButton.icon(
-            onPressed: () {
-              // Implement file import logic here
-              print("Import file button clicked");
+            onPressed: () async {
+              // Pick a file using FilePicker
+              final file = await _pickFile();
+              if (file != null) {
+                setState(() {
+                  _selectedFile = file;
+                  _fileNameController.text = file.path.split('/').last;
+                });
+              }
             },
-            icon: Icon(Icons.upload_file),
-            label: Text('Choose File'),
+            icon: const Icon(Icons.upload_file),
+            label: const Text('Choose File'),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blueAccent,
             ),
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           TextField(
             controller: _fileNameController,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               labelText: 'File Name',
               border: OutlineInputBorder(),
             ),
@@ -103,28 +118,41 @@ class _FileDialogState extends State<FileDialog> {
           onPressed: () {
             Navigator.pop(context); // Close the dialog
           },
-          child: Text('Cancel'),
+          child: const Text('Cancel'),
         ),
         ElevatedButton(
-          onPressed: () {
-            // Handle file name submission logic
-            String fileName = _fileNameController.text;
-            if (fileName.isNotEmpty) {
-              print("File Name: $fileName");
-              Navigator.pop(context);
+          onPressed: () async {
+            if (_selectedFile != null && _fileNameController.text.isNotEmpty) {
+              // Upload the file to the Django backend
+              final responseMessage = await DjangoAPI.uploadFile(_selectedFile!);
+              if (responseMessage != null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(responseMessage)),
+                );
+              }
+              Navigator.pop(context); // Close the dialog
             } else {
-              // Show a simple error if the file name is empty
+              // Show an error if the file or file name is missing
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Please enter a file name')),
+                const SnackBar(content: Text('Please select a file and enter a file name')),
               );
             }
           },
-          child: Text('Submit'),
+          child: const Text('Submit'),
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.blueAccent,
           ),
         ),
       ],
     );
+  }
+
+  // File picker logic
+  Future<File?> _pickFile() async {
+    final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['pdf']);
+    if (result != null && result.files.single.path != null) {
+      return File(result.files.single.path!);
+    }
+    return null;
   }
 }
