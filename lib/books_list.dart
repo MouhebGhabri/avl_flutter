@@ -6,11 +6,17 @@ import 'package:avl_flutter/widget/button_widget.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:avl_flutter/API/Django.dart';
-
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:dio/dio.dart'; // For downloading files
+import 'package:path_provider/path_provider.dart'; // For storing downloaded files
+import 'package:flutter_pdfview/flutter_pdfview.dart'; // For viewing PDFs
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+
+import 'package:path_provider/path_provider.dart';
 
 class BooksList extends StatefulWidget {
   @override
@@ -44,6 +50,30 @@ class _BooksListState extends State<BooksList> {
     }
   }
 
+  Future<void> downloadAndOpenPDF(BuildContext context, String url, String name) async {
+    try {
+      // Show a loading dialog
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => Center(child: CircularProgressIndicator()),
+      );
+
+      // Download the file
+      final directory = await getApplicationDocumentsDirectory();
+      final filePath = '${directory.path}/$name.pdf';
+      await Dio().download(url, filePath);
+
+      // Close the loading dialog
+      Navigator.of(context).pop();
+
+      // Open the PDF
+      openPDF(context, File(filePath));
+    } catch (e) {
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to open PDF: $e')));
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -63,25 +93,29 @@ class _BooksListState extends State<BooksList> {
           ),
           itemCount: books.length,
           itemBuilder: (context, index) {
-            return Container(
-              decoration: BoxDecoration(
-                color: Colors.lightBlue.shade50,
-                borderRadius: BorderRadius.circular(12.0),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.shade400,
-                    blurRadius: 5,
-                    spreadRadius: 2,
-                  ),
-                ],
-              ),
-              child: Center(
-                child: Text(
-                  books[index]['name'] ?? 'Unknown Book',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blueAccent,
+            final book = books[index];
+            return InkWell(
+              onTap: () => downloadAndOpenPDF(context, book['url']!, book['name']!),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.lightBlue.shade50,
+                  borderRadius: BorderRadius.circular(12.0),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.shade400,
+                      blurRadius: 5,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Text(
+                    book['name'] ?? 'Unknown Book',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blueAccent,
+                    ),
                   ),
                 ),
               ),
@@ -193,4 +227,9 @@ class _FileDialogState extends State<FileDialog> {
     }
     return null;
   }
+}
+void openPDF(BuildContext context, File file) {
+  Navigator.of(context).push(
+    MaterialPageRoute(builder: (context) => PDFViewerPage(file: file)),
+  );
 }
