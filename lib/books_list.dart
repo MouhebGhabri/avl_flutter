@@ -8,7 +8,42 @@ import 'package:flutter/material.dart';
 import 'package:avl_flutter/API/Django.dart';
 
 
-class BooksList extends StatelessWidget {
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+class BooksList extends StatefulWidget {
+  @override
+  _BooksListState createState() => _BooksListState();
+}
+
+class _BooksListState extends State<BooksList> {
+  List<dynamic> books = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchBooks();
+  }
+
+  Future<void> _fetchBooks() async {
+    final userId = '112233--123366-123654-1336544';  // Replace with the appropriate user ID
+    final url = 'https://3786-196-235-94-84.ngrok-free.app/api/books/?user_id=$userId';
+
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        setState(() {
+          books = json.decode(response.body);
+        });
+      } else {
+        throw Exception('Failed to load books');
+      }
+    } catch (e) {
+      print('Error fetching books: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -18,13 +53,15 @@ class BooksList extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: GridView.builder(
+        child: books.isEmpty
+            ? Center(child: CircularProgressIndicator())
+            : GridView.builder(
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2, // Number of items per row
             crossAxisSpacing: 16.0,
             mainAxisSpacing: 16.0,
           ),
-          itemCount: 4, // Total number of books
+          itemCount: books.length,
           itemBuilder: (context, index) {
             return Container(
               decoration: BoxDecoration(
@@ -40,7 +77,7 @@ class BooksList extends StatelessWidget {
               ),
               child: Center(
                 child: Text(
-                  'Book ${index + 1}',
+                  books[index]['name'] ?? 'Unknown Book',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -66,6 +103,7 @@ class BooksList extends StatelessWidget {
     );
   }
 }
+
 
 // Custom Popup Dialog Widget
 
