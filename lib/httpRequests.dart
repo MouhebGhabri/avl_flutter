@@ -28,7 +28,7 @@ class HttpRequests {
   Future<String?> createUser(String username, String password, String email,
       String firstname, String lastname) async {
     final String registeraapiUrl = GlobalAPIUri + "auth/register";
-    print(registeraapiUrl);
+   // print(registeraapiUrl);
     try {
       // Create the user data in a Map
       final Map<String, dynamic> userData = {

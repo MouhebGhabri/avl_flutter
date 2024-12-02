@@ -20,12 +20,14 @@ class _LoginPageState extends State<LoginPage> {
     String password = _passwordController.text;
 
     var response = await httpRequest.login(username, password);
-    if (response != null) {
+     if (response != null) {
+   // if (1 == 1) {
       print('Login successful: $response'); // Handle successful login
       // Navigate to the next screen or do something else here
+      Navigator.pushNamed(context, '/HomeScreen');
     } else {
       print('Login failed');
-       // Handle failed login
+      // Handle failed login
       // Show an error message to the user
     }
   }

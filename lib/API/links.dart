@@ -1,1 +1,1 @@
-String GlobalAPIUri = 'https://a163-197-16-180-176.ngrok-free.app/';
+String GlobalAPIUri = 'https://b2ca-102-106-44-17.ngrok-free.app/';
