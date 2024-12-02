@@ -4,8 +4,12 @@ import 'package:avl_flutter/SignupPage.dart';
 import 'package:avl_flutter/ProfilePage.dart';
 import 'package:avl_flutter/books_list.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
+late SharedPreferences sharedPref;
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  sharedPref = await SharedPreferences.getInstance();
   runApp(MyApp());
 }
 
@@ -14,14 +18,14 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
         debugShowCheckedModeBanner: false,
-        initialRoute: '/booksList', // Set the initial route
+        initialRoute: '/login', // Set the initial route
         routes: {
           '/': (context) => LoginPage(), // Change this to your initial screen
           '/profile': (context) => ProfilePage(),
           '/login': (context) => LoginPage(),
           '/signup': (context) => SignupPage(),
           '/HomeScreen': (context) => HomeScreen(),
-          '/booksList':(context) => BooksList(),
+          '/booksList': (context) => BooksList(),
         });
   }
 }

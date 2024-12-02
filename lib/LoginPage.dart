@@ -1,3 +1,4 @@
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:avl_flutter/SignupPage.dart';
 import 'package:avl_flutter/httpRequests.dart';
@@ -20,15 +21,17 @@ class _LoginPageState extends State<LoginPage> {
     String password = _passwordController.text;
 
     var response = await httpRequest.login(username, password);
-     if (response != null) {
-   // if (1 == 1) {
-      print('Login successful: $response'); // Handle successful login
+    if (response != null) {
+      // if (1 == 1) {
+    //  print("Login successful: $response[id]"); // Handle successful login
       // Navigate to the next screen or do something else here
       Navigator.pushNamed(context, '/HomeScreen');
     } else {
-      print('Login failed');
-      // Handle failed login
-      // Show an error message to the user
+      AwesomeDialog(
+          context: context,
+          title: 'Alert',
+          body: Text('Wrong email or password'))
+          ..show();
     }
   }
 
