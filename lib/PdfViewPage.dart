@@ -111,7 +111,7 @@ class _PDFViewerPageState extends State<PDFViewerPage> {
             Future<void> _sendSummarizeRequest({String? chapter}) async {
               setState(() => isLoading = true);
 
-              final url =Uri.parse(GlobalAPIUriDjango+"/api/upload/");
+              final url =Uri.parse(GlobalAPIUriDjango+"api/upload/");
 
               final queryParameters = {
                 "user_id": localStorage.getItem('sid')      , // Replace with actual user_id
@@ -213,7 +213,7 @@ class _PDFViewerPageState extends State<PDFViewerPage> {
             Future<void> _sendAskRequest() async {
               setState(() => isLoading = true);
               final url =
-              Uri.parse(GlobalAPIUriDjango+"/api/upload/");
+              Uri.parse(GlobalAPIUriDjango+"api/upload/");
               final response = await http.get(url.replace(queryParameters: {
                 "user_id": localStorage.getItem('sid')      , // Replace with actual user_id
                 "book_name": widget.bookName, // Dynamically use the bookName from the widget

@@ -86,46 +86,49 @@ class _BooksListState extends State<BooksList> {
         title: Text('Book Gallery'),
         backgroundColor: Colors.blueAccent,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: books.isEmpty
-            ? Center(child: CircularProgressIndicator())
-            : GridView.builder(
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2, // Number of items per row
-            crossAxisSpacing: 16.0,
-            mainAxisSpacing: 16.0,
-          ),
-          itemCount: books.length,
-          itemBuilder: (context, index) {
-            final book = books[index];
-            return InkWell(
-              onTap: () => downloadAndOpenPDF(context, book['url']!, book['name']!),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.lightBlue.shade50,
-                  borderRadius: BorderRadius.circular(12.0),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.shade400,
-                      blurRadius: 5,
-                      spreadRadius: 2,
-                    ),
-                  ],
-                ),
-                child: Center(
-                  child: Text(
-                    book['name'] ?? 'Unknown Book',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blueAccent,
+      body: RefreshIndicator(
+        onRefresh: _fetchBooks, // This function will be triggered on pull-to-refresh
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: books.isEmpty
+              ? Center(child: CircularProgressIndicator())
+              : GridView.builder(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2, // Number of items per row
+              crossAxisSpacing: 16.0,
+              mainAxisSpacing: 16.0,
+            ),
+            itemCount: books.length,
+            itemBuilder: (context, index) {
+              final book = books[index];
+              return InkWell(
+                onTap: () => downloadAndOpenPDF(context, book['url']!, book['name']!),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.lightBlue.shade50,
+                    borderRadius: BorderRadius.circular(12.0),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.shade400,
+                        blurRadius: 5,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Text(
+                      book['name'] ?? 'Unknown Book',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blueAccent,
+                      ),
                     ),
                   ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
@@ -208,7 +211,8 @@ class _FileDialogState extends State<FileDialog> {
                   SnackBar(content: Text(responseMessage)),
                 );
               }
-              Navigator.pop(context); // Close the dialog
+              Navigator.pop(context);
+              setState(() {});
             } else {
               // Show an error if the file or file name is missing
               ScaffoldMessenger.of(context).showSnackBar(

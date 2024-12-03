@@ -8,7 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class HttpRequests {
   Future<String?> fetchData() async {
-    final String apiUrl = GlobalAPIUri + "auth/test";
+    final String apiUrl = GlobalAPIUriSpringBoot + "auth/test";
 
     try {
       final response = await http.get(Uri.parse(apiUrl)); // Make a GET request
@@ -29,7 +29,7 @@ class HttpRequests {
 
   Future<String?> createUser(String username, String password, String email,
       String firstname, String lastname) async {
-    final String registeraapiUrl = GlobalAPIUri + "auth/register";
+    final String registeraapiUrl = GlobalAPIUriSpringBoot + "auth/register";
     // print(registeraapiUrl);
     try {
       // Create the user data in a Map
@@ -69,7 +69,7 @@ class HttpRequests {
 
   Future<Map<String, dynamic>?> login(String username, String password) async {
     final String apiUrl =
-       "https://e23f-196-179-254-81.ngrok-free.app/auth/login"; // Replace with your actual API URL
+        GlobalAPIUriSpringBoot+"auth/login"; // Replace with your actual API URL
 
     try {
       final response = await http.post(
@@ -99,7 +99,7 @@ class HttpRequests {
         Map<String, dynamic> payloadMap = jsonDecode(decodedPayload);
 
         // Extract the 'sid' field
-        String? sid = payloadMap['sid'];
+        String? sid = payloadMap['sub'];
         print(theToken);
         print('sid: $sid');
         localStorage.setItem('sid', sid.toString() );

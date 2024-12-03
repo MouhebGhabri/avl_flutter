@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
         debugShowCheckedModeBanner: false,
-        initialRoute: '/booksList', // Set the initial route
+        initialRoute: '/', // Set the initial route
         routes: {
           '/': (context) => LoginPage(), // Change this to your initial screen
           '/profile': (context) => ProfilePage(),
