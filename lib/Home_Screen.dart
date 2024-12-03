@@ -2,16 +2,22 @@ import 'dart:io';
 import 'package:avl_flutter/API/pdf_api.dart';
 import 'package:avl_flutter/PdfViewPage.dart';
 import 'package:avl_flutter/httpRequests.dart'; // Adjust the import based on your actual file structure
+import 'package:avl_flutter/main.dart';
 import 'package:avl_flutter/widget/button_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:avl_flutter/LoginPage.dart';
+
 
 class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Home Screen'),
+        title: Text(
+          'Home Screen',
+        ),
         automaticallyImplyLeading: false, // Disable the back button
+        backgroundColor: Colors.deepPurpleAccent,
       ),
       endDrawer: Drawer(
         child: ListView(
@@ -37,10 +43,11 @@ class HomeScreen extends StatelessWidget {
               },
             ),
             ListTile(
-              leading: Icon(Icons.logout),
+              leading: Icon(Icons.exit_to_app),
               title: Text('Log Out'),
               onTap: () {
-                Navigator.pushNamed(context, '/login');
+                sharedPref.clear();
+                   Navigator.of(context).popUntil((route) => route.isFirst);
               },
             ),
           ],
@@ -57,7 +64,6 @@ class HomeScreen extends StatelessWidget {
                 onClicked: () async {
                   final file = await PDFApi.pickFile();
                   if (file == null) return;
-                  openPDF(context, file);
                 },
               ),
             ],
@@ -67,11 +73,5 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  void openPDF(BuildContext context, File file) {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => PDFViewerPage(file: file)),
-    );
-  }
+
 }
-
-

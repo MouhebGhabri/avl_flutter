@@ -9,6 +9,7 @@ import 'package:avl_flutter/API/Django.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart'; // For downloading files
+import 'package:localstorage/localstorage.dart';
 import 'package:path_provider/path_provider.dart'; // For storing downloaded files
 import 'package:flutter_pdfview/flutter_pdfview.dart'; // For viewing PDFs
 
@@ -17,6 +18,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import 'package:path_provider/path_provider.dart';
+
+import 'API/links.dart';
 
 class BooksList extends StatefulWidget {
   @override
@@ -33,12 +36,14 @@ class _BooksListState extends State<BooksList> {
   }
 
   Future<void> _fetchBooks() async {
-    final userId = '112233--123366-123654-1336544';  // Replace with the appropriate user ID
-    final url = 'https://3786-196-235-94-84.ngrok-free.app/api/books/?user_id=$userId';
+    print(localStorage.getItem('sid'));
+    final userId = localStorage.getItem('sid');  // Replace with the appropriate user ID
+    final url = GlobalAPIUriDjango+"api/books/?user_id=$userId";
 
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
+        print(response);
         setState(() {
           books = json.decode(response.body);
         });
@@ -68,7 +73,7 @@ class _BooksListState extends State<BooksList> {
       Navigator.of(context).pop();
 
       // Open the PDF
-      openPDF(context, File(filePath));
+      openPDF(context, File(filePath), name);
     } catch (e) {
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to open PDF: $e')));
@@ -194,6 +199,7 @@ class _FileDialogState extends State<FileDialog> {
         ),
         ElevatedButton(
           onPressed: () async {
+            print("hello");
             if (_selectedFile != null && _fileNameController.text.isNotEmpty) {
               // Upload the file to the Django backend
               final responseMessage = await DjangoAPI.uploadFile(_selectedFile!);
@@ -228,8 +234,8 @@ class _FileDialogState extends State<FileDialog> {
     return null;
   }
 }
-void openPDF(BuildContext context, File file) {
+void openPDF(BuildContext context, File file, String bookName) {
   Navigator.of(context).push(
-    MaterialPageRoute(builder: (context) => PDFViewerPage(file: file)),
+    MaterialPageRoute(builder: (context) => PDFViewerPage(file: file, bookName: bookName)),
   );
 }

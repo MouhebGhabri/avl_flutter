@@ -3,14 +3,21 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
+import 'package:localstorage/localstorage.dart';
 import 'package:path/path.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'API/links.dart';
+import 'main.dart';
 class PDFViewerPage extends StatefulWidget {
   final File file;
+  final String bookName;
 
   const PDFViewerPage({
     Key? key,
     required this.file,
+    required this.bookName
   }) : super(key: key);
 
   @override
@@ -21,6 +28,8 @@ class _PDFViewerPageState extends State<PDFViewerPage> {
   late PDFViewController controller;
   int pages = 0;
   int indexPage = 0;
+  final sharedPref =  SharedPreferences.getInstance();
+
 
   @override
   Widget build(BuildContext context) {
@@ -90,58 +99,103 @@ class _PDFViewerPageState extends State<PDFViewerPage> {
 
   void _showSummarizeDialog(BuildContext context) {
     final TextEditingController chapterController = TextEditingController();
+    bool isLoading = false;
+    String? responseMessage;
 
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) {
-        return AlertDialog(
-          title: Text("Summarize"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: chapterController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText: "Chapter Number",
-                  hintText: "Enter chapter number to summarize",
-                ),
-              ),
-              SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
+        return StatefulBuilder(
+          builder: (context, setState) {
+            Future<void> _sendSummarizeRequest({String? chapter}) async {
+              setState(() => isLoading = true);
+
+              final url =Uri.parse(GlobalAPIUriDjango+"/api/upload/");
+
+              final queryParameters = {
+                "user_id": localStorage.getItem('sid')      , // Replace with actual user_id
+                "book_name": widget.bookName, // Dynamically use the bookName from the widget
+                "action_type": "resume",
+              };
+              if (chapter != null) {
+                queryParameters["chapter"] = chapter;
+              }
+
+              final response = await http.get(url.replace(queryParameters: queryParameters));
+
+              setState(() {
+                isLoading = false;
+                if (response.statusCode == 200) {
+                  responseMessage = json.decode(response.body)['summary'] ??
+                      "No response message provided.";
+                } else {
+                  responseMessage = "Error: ${response.reasonPhrase}";
+                }
+              });
+            }
+
+            return AlertDialog(
+              title: Text("Summarize"),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      // Add logic to summarize the whole book
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("Summarizing the whole book...")),
-                      );
-                    },
-                    child: Text("Whole Book"),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      // Add logic to summarize the selected chapter
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                              "Summarizing Chapter ${chapterController.text}..."),
-                        ),
-                      );
-                    },
-                    child: Text("Selected Chapter"),
-                  ),
+                  if (isLoading)
+                    Center(child: CircularProgressIndicator())
+                  else if (responseMessage == null)
+                    TextField(
+                      controller: chapterController,
+                      decoration: InputDecoration(
+                        labelText: "Chapter (Optional)",
+                        hintText: "Enter chapter number",
+                      ),
+                      keyboardType: TextInputType.number,
+                    )
+                  else
+                    Text(
+                      responseMessage!,
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                 ],
               ),
-            ],
-          ),
+              actions: [
+                if (responseMessage == null) ...[
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text("Cancel"),
+                  ),
+                  TextButton(
+                    onPressed: () async {
+                      await _sendSummarizeRequest(); // Summarize entire book
+                    },
+                    child: Text("Summarize Book"),
+                  ),
+                  TextButton(
+                    onPressed: () async {
+                      if (chapterController.text.isNotEmpty) {
+                        await _sendSummarizeRequest(
+                            chapter: chapterController.text);
+                      } else {
+                        setState(() {
+                          responseMessage = "Please enter a valid chapter number.";
+                        });
+                      }
+                    },
+                    child: Text("Summarize Chapter"),
+                  ),
+                ] else
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text("Close"),
+                  ),
+              ],
+            );
+          },
         );
       },
     );
   }
+
 
 
 
@@ -159,10 +213,10 @@ class _PDFViewerPageState extends State<PDFViewerPage> {
             Future<void> _sendAskRequest() async {
               setState(() => isLoading = true);
               final url =
-              Uri.parse("https://3786-196-235-94-84.ngrok-free.app/api/upload/");
+              Uri.parse(GlobalAPIUriDjango+"/api/upload/");
               final response = await http.get(url.replace(queryParameters: {
-                "user_id": "123",
-                "book_name": "richdadpoordad",
+                "user_id": localStorage.getItem('sid')      , // Replace with actual user_id
+                "book_name": widget.bookName, // Dynamically use the bookName from the widget
                 "action_type": "question",
                 "query": questionController.text,
               }));
@@ -236,21 +290,70 @@ class _PDFViewerPageState extends State<PDFViewerPage> {
 
 
   void _showRecommendDialog(BuildContext context) {
+    bool isLoading = false;
+    String? recommendationMessage;
+
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) {
-        return AlertDialog(
-          title: Text("Recommend"),
-          content: Text(
-              "Get personalized recommendations based on the document's content."),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text("Close"),
-            ),
-          ],
+        return StatefulBuilder(
+          builder: (context, setState) {
+            Future<void> _fetchRecommendations() async {
+              setState(() => isLoading = true);
+
+              try {
+                String bookNameWithoutExtension = widget.bookName.split('.').first;
+
+                String formattedBookName = bookNameWithoutExtension.replaceAll('-', ' ');
+                final url = Uri.parse("${GlobalAPIUriFlask}/recommend/${formattedBookName}");
+                final response = await http.get(url);
+                setState(() {
+                  isLoading = false;
+                  if (response.statusCode == 200) {
+                    recommendationMessage = response.body; // Assume plain text response
+                  } else {
+                    recommendationMessage =
+                    "Error: ${response.reasonPhrase ?? 'Unable to fetch recommendations.'}";
+                  }
+                });
+              } catch (e) {
+                setState(() {
+                  isLoading = false;
+                  recommendationMessage = "An error occurred: $e";
+                });
+              }
+            }
+
+            return AlertDialog(
+              title: Text("Recommend"),
+              content: isLoading
+                  ? Center(child: CircularProgressIndicator())
+                  : recommendationMessage == null
+                  ? Text(
+                "Click the button below to get personalized recommendations for this book.",
+              )
+                  : Text(
+                recommendationMessage!,
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              actions: [
+                if (recommendationMessage == null)
+                  TextButton(
+                    onPressed: _fetchRecommendations,
+                    child: Text("Get Recommendations"),
+                  )
+                else
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text("Close"),
+                  ),
+              ],
+            );
+          },
         );
       },
     );
   }
+
 }

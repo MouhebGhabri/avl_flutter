@@ -1,7 +1,9 @@
 import 'dart:convert';
 
 import 'package:avl_flutter/API/links.dart';
+import 'package:avl_flutter/main.dart';
 import 'package:http/http.dart' as http;
+import 'package:localstorage/localstorage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HttpRequests {
@@ -28,7 +30,7 @@ class HttpRequests {
   Future<String?> createUser(String username, String password, String email,
       String firstname, String lastname) async {
     final String registeraapiUrl = GlobalAPIUri + "auth/register";
-    print(registeraapiUrl);
+    // print(registeraapiUrl);
     try {
       // Create the user data in a Map
       final Map<String, dynamic> userData = {
@@ -64,8 +66,10 @@ class HttpRequests {
       return null;
     }
   }
+
   Future<Map<String, dynamic>?> login(String username, String password) async {
-    final String apiUrl = GlobalAPIUri+ "auth/login"; // Replace with your actual API URL
+    final String apiUrl =
+       "https://e23f-196-179-254-81.ngrok-free.app/auth/login"; // Replace with your actual API URL
 
     try {
       final response = await http.post(
@@ -82,11 +86,30 @@ class HttpRequests {
       if (response.statusCode == 200) {
         // If the server returns a 200 (OK) response
         var data = jsonDecode(response.body) as Map<String, dynamic>;
+        String theToken = data['token'];
+        List<String> parts = theToken.split('.');
+        if (parts.length != 3) {
+          print("Invalid token");
+        }
+        // Decode the payload part (second part)
+        String payload = parts[1];
+        String decodedPayload =
+            utf8.decode(base64Url.decode(base64Url.normalize(payload)));
+        // Convert the decoded payload into a Map
+        Map<String, dynamic> payloadMap = jsonDecode(decodedPayload);
 
+        // Extract the 'sid' field
+        String? sid = payloadMap['sid'];
+        print(theToken);
+        print('sid: $sid');
+        localStorage.setItem('sid', sid.toString() );
         // Save token and username in shared preferences
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setString('token', data['token']); // Adjust according to your response structure
-        await prefs.setString('username', username);
+        // SharedPreferences prefs = await SharedPreferences.getInstance();
+        await sharedPref.setString('token',
+            data['token']); // Adjust according to your response structure
+        await sharedPref.setString('username', username);
+        await sharedPref.setString('userId', payloadMap['sid']);
+        // await sharedPref.setString("id", data)
 
         return data; // Return the parsed JSON data
       } else {
@@ -94,7 +117,8 @@ class HttpRequests {
         return null; // Return null in case of an error
       }
     } catch (e) {
-      print('Error occurred: $e'); // Handle any exceptions (e.g., network issues)
+      print(
+          'Error occurred: $e'); // Handle any exceptions (e.g., network issues)
       return null;
     }
   }

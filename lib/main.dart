@@ -4,8 +4,16 @@ import 'package:avl_flutter/SignupPage.dart';
 import 'package:avl_flutter/ProfilePage.dart';
 import 'package:avl_flutter/books_list.dart';
 import 'package:flutter/material.dart';
+import 'package:localstorage/localstorage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
+late SharedPreferences sharedPref;
+void main() async {
+
+  WidgetsFlutterBinding.ensureInitialized();
+  sharedPref = await SharedPreferences.getInstance();
+  await initLocalStorage();
+
   runApp(MyApp());
 }
 
@@ -21,7 +29,7 @@ class MyApp extends StatelessWidget {
           '/login': (context) => LoginPage(),
           '/signup': (context) => SignupPage(),
           '/HomeScreen': (context) => HomeScreen(),
-          '/booksList':(context) => BooksList(),
+          '/booksList': (context) => BooksList(),
         });
   }
 }

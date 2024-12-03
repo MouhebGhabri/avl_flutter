@@ -6,6 +6,8 @@ plugins {
 }
 
 android {
+    compileSdkVersion 33
+    ndkVersion "25.1.8937393" // Set the highest NDK version
     namespace = "com.example.avl_flutter"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
