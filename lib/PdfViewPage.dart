@@ -7,6 +7,7 @@ import 'package:localstorage/localstorage.dart';
 import 'package:path/path.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import 'API/links.dart';
 import 'main.dart';
@@ -288,10 +289,9 @@ class _PDFViewerPageState extends State<PDFViewerPage> {
     );
   }
 
-
   void _showRecommendDialog(BuildContext context) {
     bool isLoading = false;
-    String? recommendationMessage;
+    Map<String, dynamic>? recommendationMessage;
 
     showDialog(
       context: context,
@@ -304,23 +304,24 @@ class _PDFViewerPageState extends State<PDFViewerPage> {
 
               try {
                 String bookNameWithoutExtension = widget.bookName.split('.').first;
-
                 String formattedBookName = bookNameWithoutExtension.replaceAll('-', ' ');
                 final url = Uri.parse("${GlobalAPIUriFlask}/recommend/${formattedBookName}");
                 final response = await http.get(url);
+
                 setState(() {
                   isLoading = false;
                   if (response.statusCode == 200) {
-                    recommendationMessage = response.body; // Assume plain text response
+                    recommendationMessage = json.decode(response.body); // Parse JSON response
                   } else {
-                    recommendationMessage =
-                    "Error: ${response.reasonPhrase ?? 'Unable to fetch recommendations.'}";
+                    recommendationMessage = {
+                      "error": response.reasonPhrase ?? "Unable to fetch recommendations."
+                    };
                   }
                 });
               } catch (e) {
                 setState(() {
                   isLoading = false;
-                  recommendationMessage = "An error occurred: $e";
+                  recommendationMessage = {"error": "An error occurred: $e"};
                 });
               }
             }
@@ -330,15 +331,92 @@ class _PDFViewerPageState extends State<PDFViewerPage> {
               content: isLoading
                   ? Center(child: CircularProgressIndicator())
                   : recommendationMessage == null
+                  ? Text("Click the button below to get personalized recommendations for this book.")
+                  : recommendationMessage!.containsKey("error")
                   ? Text(
-                "Click the button below to get personalized recommendations for this book.",
+                recommendationMessage!["error"],
+                style: TextStyle(color: Colors.red),
               )
-                  : Text(
-                recommendationMessage!,
-                style: TextStyle(fontWeight: FontWeight.bold),
+                  : SizedBox(
+                height: 300, // Set height for scrollable content
+                width: double.maxFinite,
+                child: ListView.builder(
+                  itemCount: recommendationMessage!['recommendations'].length,
+                  itemBuilder: (context, index) {
+                    final recommendation = recommendationMessage!['recommendations'][index];
+                    return InkWell(
+                      onTap: () {
+                        // Handle item click
+                        print("Selected: ${recommendation['title']}");
+                      },
+                      child: Card(
+                        elevation: 3,
+                        margin: const EdgeInsets.symmetric(vertical: 8),
+                        child: Stack(
+                          children: [
+                            // Background image using CachedNetworkImage
+                            CachedNetworkImage(
+                              imageUrl: recommendation['image'],
+                              fit: BoxFit.cover,
+                              height: 150,
+                              width: double.infinity,
+                              placeholder: (context, url) => Center(child: CircularProgressIndicator()),
+                              errorWidget: (context, url, error) => Icon(Icons.error, color: Colors.red),
+                            ),
+                            // Overlay gradient
+                            Container(
+                              height: 150,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Colors.black.withOpacity(0.6),
+                                    Colors.transparent
+                                  ],
+                                  begin: Alignment.bottomCenter,
+                                  end: Alignment.topCenter,
+                                ),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            // Title and author
+                            Positioned(
+                              bottom: 10,
+                              left: 10,
+                              right: 10,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    recommendation['title'],
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  Text(
+                                    "Author: ${recommendation['author']}",
+                                    style: TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 14,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
               actions: [
-                if (recommendationMessage == null)
+                if (recommendationMessage == null || recommendationMessage!.containsKey("error"))
                   TextButton(
                     onPressed: _fetchRecommendations,
                     child: Text("Get Recommendations"),
@@ -350,10 +428,12 @@ class _PDFViewerPageState extends State<PDFViewerPage> {
                   ),
               ],
             );
+
           },
         );
       },
     );
   }
+
 
 }
